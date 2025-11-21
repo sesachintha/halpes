@@ -55,4 +55,4 @@ jobs:
           password: ${{ secrets.GIT_CPANEL_REACT_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_REACT_PROTOCOL }}
           # If you exported static files -> deploy `out/`. If you produced static build differently, update accordingly.
-          local-dir: ./next/
+          local-dir: ./out/
