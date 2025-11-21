@@ -11,48 +11,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
           cache: 'npm'
 
-      - name: 🔁 Update Browserslist DB
-        run: |
-          npx browserslist@latest --update-db || true
+      - name: Install dependencies
+        run: npm ci
 
-      - name: 📦 Install dependencies (clean)
-        run: |
-          npm ci
+      - name: Build Next.js App
+        run: npm run build
 
-      # Optional: Try to ensure SWC binary is present (only necessary if you continue to get SWC errors)
-      - name: 🛠 Ensure SWC binary (optional, safe)
-        run: |
-          # try a best-fit SWC binary for linux x64 (optional)
-          npm explore next -- npm run install:swc || true
-          # fallback: explicit install of the SWC optional package (no error exit)
-          npm i --no-save @next/swc-linux-x64-gnu || true
-
-      - name: 🔨 Build Project
-        run: |
-          npm run build
-
-      # If you're using next export (static site), run export and deploy the out/ dir
-      - name: 🧾 Export static site (if using next export)
-        if: ${{ always() }}
-        run: |
-          # remove this step if you do not use `next export`
-          npm run export || true
-
-      - name: 📂 Sync files to cPanel via FTP
+      - name: Upload to cPanel
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.GIT_CPANEL_REACT_SERVER }}
           username: ${{ secrets.GIT_CPANEL_REACT_USER }}
           password: ${{ secrets.GIT_CPANEL_REACT_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_REACT_PROTOCOL }}
-          # If you exported static files -> deploy `out/`. If you produced static build differently, update accordingly.
-          local-dir: ./dist/
+          local-dir: ./   # Upload root including .next/
+          exclude: |
+            **/.git*
+            **/node_modules/**
+            **/out/**
+            **/dist/**
+            **/*.md
+            **/*.yml
+            README*
